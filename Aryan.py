@@ -37,7 +37,7 @@ st.markdown(f"""
 if not final_df.empty:
     final_df = final_df.sort_values(by="return_1yr", ascending=False)  # Sort by return
 
-    fig, ax = plt.subplots(figsize=(18, 8))
+    fig, ax = plt.subplots(figsize=(16, 8))
     sb.barplot(x=final_df.MutualFundName, y=final_df.return_1yr, palette='rocket', ax=ax)
 
     # Add labels and formatting
