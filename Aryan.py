@@ -31,7 +31,7 @@ final_df = filtered_df[filtered_df.AMC_name == selected_amc]
 # Show the mutual fund names and their 1-year returns
 st.subheader(f"1-Year Returns for Mutual Funds in {selected_amc} under {selected_category}")
 if not final_df.empty:
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(16, 6))
     plot = sb.barplot(x=final_df.MutualFundName, y=final_df.return_1yr, palette='hot')
     plt.xticks(rotation=90)
     plt.tight_layout()
