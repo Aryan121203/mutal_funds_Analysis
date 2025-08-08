@@ -1,162 +1,147 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-# ✅ Streamlit Config
+# ==================== ✅ Streamlit Page Config ====================
 st.set_page_config(
-    page_title="📊 Mutual Fund Explorer India",
+    page_title="📊 Mutual Fund Explorer",
     layout="wide",
     page_icon="📈"
 )
 
-# 🔄 Load Data
-@st.cache_data
-def load_data():
-    df = pd.read_csv("mutual_funds_india.csv")
-    df.columns = df.columns.str.replace(" ", "")
-    return df
-
-df = load_data()
-
-# 🌑 Dark Theme + Flipkart Accent CSS
+# ==================== 💡 Custom CSS for Flipkart-like UI ====================
 st.markdown("""
     <style>
-        html, body, .stApp {
+        /* Overall dark background */
+        .stApp {
             background-color: #121212;
-            color: #e0e0e0;
-        }
-        .block-container {
-            padding-top: 2rem;
-        }
-        h1, h2, h3 {
-            font-family: 'Segoe UI', sans-serif;
-            color: #e0e0e0;
-        }
-        .stButton > button {
-            background-color: #2874f0;
             color: white;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 0.6em 1.2em;
-            transition: 0.3s ease;
         }
-        .stButton > button:hover {
-            background-color: #1a5fd6;
+
+        /* Make containers transparent */
+        div.stContainer {
+            background: transparent;
         }
-        .stDownloadButton > button {
-            background-color: #ff9f00;
+
+        /* Sidebar styling */
+        section[data-testid="stSidebar"] {
+            background-color: #1f1f1f;
             color: white;
-            font-weight: 600;
-            border-radius: 8px;
+            border-right: 2px solid #4CAF50;
         }
-        .stDownloadButton > button:hover {
-            background-color: #fb8c00;
+
+        /* Titles and headers */
+        h1, h2, h3, h4 {
+            color: #4CAF50;
         }
-        .fund-card {
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+
+        /* Markdown text */
+        .markdown-text-container {
+            color: white !important;
         }
-        .fund-card:hover {
-            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
-        }
-        .dataframe th {
-            background-color: #2874f0 !important;
+
+        /* Download button */
+        .stDownloadButton button {
+            background-color: #4CAF50;
             color: white;
+            font-weight: bold;
+        }
+
+        .stDownloadButton button:hover {
+            background-color: #388E3C;
+        }
+
+        /* Filter widgets */
+        .stSelectbox label {
+            color: #b2dfdb;
+        }
+
+        .stCaption {
+            color: #bdbdbd;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# 🧭 Hero Section
+# ==================== 📥 Load & Cache Data ====================
+@st.cache_data
+def load_data():
+    df = pd.read_csv("mutual_funds_india.csv")
+    df.columns = df.columns.str.replace(" ", "")  # Remove spaces in column names
+    return df
+
+df = load_data()
+
+# ==================== 👋 Hero Section ====================
 with st.container():
     st.markdown("""
-        <div style='text-align: center; padding: 2rem 1rem 0;'>
-            <h1 style='font-size: 2.8rem; color: #2874f0;'>📈 Mutual Fund Explorer India</h1>
-            <p style='font-size: 1.2rem; color: #bbb;'>Dark Mode • Flipkart-Inspired • Performance Dashboard</p>
+        <div style='text-align: center; padding: 2rem 1rem 1rem;'>
+            <h1 style='font-size: 3rem;'>📈 Mutual Fund Explorer India</h1>
+            <p style='font-size: 1.2rem; color: #e0e0e0;'>Compare returns by category and AMC — Interactive, Beautiful & Fast</p>
         </div>
     """, unsafe_allow_html=True)
 
-st.markdown("---")
+st.markdown("<hr style='border: 1px solid #4CAF50;'>", unsafe_allow_html=True)
 
-# 🎛 Sidebar Filters
+# ==================== 🎛 Sidebar Filters ====================
 with st.sidebar:
     st.header("🔍 Filter Your Funds")
-    category = st.selectbox("📂 Choose Fund Category", sorted(df.category.unique()))
-    amcs = sorted(df[df.category == category].AMC_name.unique())
-    amc = st.selectbox("🏢 Select AMC", amcs)
+    categories = sorted(df.category.unique())
+    selected_category = st.selectbox("📂 Select Fund Category", categories)
+
+    filtered_df = df[df.category == selected_category]
+    amcs = sorted(filtered_df.AMC_name.unique())
+    selected_amc = st.selectbox("🏢 Select AMC", amcs)
 
     st.markdown("---")
-    st.caption("🌙 Dark mode powered by Streamlit + Plotly")
+    st.caption("Made with ❤️ using Streamlit")
 
-# 📦 Filtered Data
-filtered_df = df[(df.category == category) & (df.AMC_name == amc)].sort_values(by="return_1yr", ascending=False)
+# ==================== 📊 Final Filtered Data ====================
+final_df = filtered_df[filtered_df.AMC_name == selected_amc]
+final_df = final_df.sort_values(by="return_1yr", ascending=False)
 
-# 📊 Plotly Bar Chart
+# ==================== 📊 Chart Section ====================
 with st.container():
-    st.subheader(f"📊 1-Year Return for `{category}` → `{amc}`")
-    if not filtered_df.empty:
-        fig = px.bar(
-            filtered_df,
-            x='MutualFundName',
-            y='return_1yr',
-            text='return_1yr',
-            color='return_1yr',
-            color_continuous_scale='icefire',  # vibrant dark mode colors
-            height=600,
-            labels={'return_1yr': '1-Year Return (%)'}
-        )
-        fig.update_layout(
-            xaxis_tickangle=45,
-            xaxis_title=None,
-            yaxis_title='Return (%)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='#e0e0e0'),
-            margin=dict(l=40, r=40, t=20, b=80)
-        )
-        fig.update_traces(texttemplate='%{text:.2f}%', textposition='outside')
-        st.plotly_chart(fig, use_container_width=True)
+    st.subheader(f"📊 1-Year Return: `{selected_category}` → `{selected_amc}`")
+    if not final_df.empty:
+        fig, ax = plt.subplots(figsize=(16, 8))
+        sns.set_style("darkgrid")
+        sns.barplot(data=final_df, x="MutualFundName", y="return_1yr", palette="viridis", ax=ax)
+
+        ax.set_title("Top Mutual Funds by 1-Year Return", fontsize=18, fontweight='bold', color="white")
+        ax.set_xlabel("")
+        ax.set_ylabel("Return (%)", fontsize=14, color="white")
+        ax.tick_params(colors='white')
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right', fontsize=10, color='white')
+
+        # Annotate bars
+        for p in ax.patches:
+            height = p.get_height()
+            ax.annotate(f'{height:.1f}%', 
+                        (p.get_x() + p.get_width() / 2., height),
+                        ha='center', va='bottom', fontsize=9, color='white')
+
+        plt.tight_layout()
+        st.pyplot(fig)
     else:
-        st.warning("⚠️ No mutual funds available for this combination.")
+        st.warning("⚠️ No data found for this selection.")
 
-# 🧾 Top 5 Fund Cards
-if not filtered_df.empty:
-    st.markdown("### 💎 Top 5 Funds (By 1-Year Return)")
-    top5 = filtered_df.head(5)
-    for i, row in top5.iterrows():
-        st.markdown(f"""
-        <div class='fund-card'>
-            <h4 style='margin: 0; color: #64b5f6;'>{row['MutualFundName']}</h4>
-            <p style='margin: 0.2rem 0;'><b>1Y Return:</b> {row['return_1yr']}%</p>
-            <p style='margin: 0.2rem 0;'><b>Category:</b> {row['category']}</p>
-            <p style='margin: 0.2rem 0;'><b>AMC:</b> {row['AMC_name']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-# 📋 Table View
-with st.expander("📋 View Full Table"):
-    st.dataframe(filtered_df, use_container_width=True, hide_index=True)
-
-# 📥 Download Button
+# ==================== ⬇️ Download Section ====================
 with st.container():
     st.markdown("### 📥 Download Filtered Data")
-    csv = filtered_df.to_csv(index=False).encode("utf-8")
+    st.markdown("You can download this table for your own analysis or presentation.")
+    download_csv = final_df.to_csv(index=False).encode("utf-8")
     st.download_button(
         label="⬇️ Download CSV",
-        data=csv,
-        file_name=f"{amc}_{category}_returns.csv",
+        data=download_csv,
+        file_name=f"{selected_amc}_{selected_category}_returns.csv",
         mime="text/csv"
     )
 
-# 📌 Footer
+# ==================== 📌 Footer ====================
 st.markdown("""
-    <hr style="margin-top: 3rem; margin-bottom: 1rem;">
-    <div style='text-align: center; font-size: 0.9rem; color: #888;'>
-        Built with 💙 by <b>Your Name</b> | Inspired by Flipkart | Dark Mode Dashboard
-    </div>
+<hr style="margin-top: 3rem; border: 1px solid #4CAF50;">
+<div style='text-align: center; font-size: 0.9rem; color: gray;'>
+    Built with ❤️ by <b>Your Name</b> | Powered by Streamlit, Pandas & Seaborn
+</div>
 """, unsafe_allow_html=True)
