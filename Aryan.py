@@ -10,55 +10,68 @@ st.set_page_config(
     page_icon="📈"
 )
 
-# ==================== 💡 Custom CSS for Flipkart-like UI ====================
+# ==================== 🎨 Custom CSS - Premium Dark Transparent Theme ====================
 st.markdown("""
     <style>
-        /* Overall dark background */
+        /* Entire app background */
         .stApp {
-            background-color: #121212;
+            background: linear-gradient(135deg, rgba(18,18,18,0.95), rgba(28,28,28,0.95));
             color: white;
+            font-family: 'Segoe UI', sans-serif;
         }
 
-        /* Make containers transparent */
-        div.stContainer {
-            background: transparent;
+        /* Transparent containers with glass effect */
+        .block-container {
+            background: rgba(30, 30, 30, 0.4);
+            backdrop-filter: blur(8px);
+            border-radius: 15px;
+            padding: 1rem;
         }
 
-        /* Sidebar styling */
+        /* Sidebar - dark glass look */
         section[data-testid="stSidebar"] {
-            background-color: #1f1f1f;
-            color: white;
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(10px);
             border-right: 2px solid #4CAF50;
         }
 
-        /* Titles and headers */
+        /* Headings */
         h1, h2, h3, h4 {
             color: #4CAF50;
+            font-weight: 700;
         }
 
-        /* Markdown text */
-        .markdown-text-container {
-            color: white !important;
-        }
-
-        /* Download button */
-        .stDownloadButton button {
-            background-color: #4CAF50;
+        /* Buttons */
+        .stDownloadButton button, .stButton button {
+            background: linear-gradient(90deg, #4CAF50, #2E7D32);
             color: white;
+            font-weight: bold;
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
+            transition: 0.3s;
+        }
+
+        .stDownloadButton button:hover, .stButton button:hover {
+            background: linear-gradient(90deg, #66BB6A, #388E3C);
+            transform: scale(1.05);
+        }
+
+        /* Selectbox Labels */
+        label {
+            color: #b2dfdb !important;
             font-weight: bold;
         }
 
-        .stDownloadButton button:hover {
-            background-color: #388E3C;
+        /* Table Styling */
+        .stDataFrame {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
         }
 
-        /* Filter widgets */
-        .stSelectbox label {
-            color: #b2dfdb;
-        }
-
-        .stCaption {
-            color: #bdbdbd;
+        /* Footer */
+        footer {
+            visibility: hidden;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -105,9 +118,11 @@ with st.container():
     st.subheader(f"📊 1-Year Return: `{selected_category}` → `{selected_amc}`")
     if not final_df.empty:
         fig, ax = plt.subplots(figsize=(16, 8))
-        sns.set_style("darkgrid")
-        sns.barplot(data=final_df, x="MutualFundName", y="return_1yr", palette="viridis", ax=ax)
+        sns.set_style("white")
+        sns.barplot(data=final_df, x="MutualFundName", y="return_1yr", palette="crest", ax=ax)
 
+        ax.set_facecolor("none")  # transparent plot bg
+        fig.patch.set_alpha(0)    # transparent figure bg
         ax.set_title("Top Mutual Funds by 1-Year Return", fontsize=18, fontweight='bold', color="white")
         ax.set_xlabel("")
         ax.set_ylabel("Return (%)", fontsize=14, color="white")
